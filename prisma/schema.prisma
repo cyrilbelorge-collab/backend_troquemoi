@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountStatus {
+  NORMAL
+  UNDER_REVIEW
+  LIMITED
+  BANNED
+}
+
+enum ListingStatus {
+  ACTIVE
+  DISABLED
+  ARCHIVED
+}
+
+enum ExchangeStatus {
+  PENDING
+  ACCEPTED
+  REFUSED
+  COUNTER
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ReportTargetType {
+  USER
+  LISTING
+  EXCHANGE
+  CHAT_MESSAGE
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  passwordHash   String
+  pseudo         String
+  city           String
+  zipCode        String?
+  phone          String?  @unique
+  emailVerified  Boolean  @default(false)
+  phoneVerified  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  // Confiance / fraude
+  rating         Float    @default(0)
+  ratingCount    Int      @default(0)
+  trustScore     Int      @default(0)
+  reportCount    Int      @default(0)
+  warningCount   Int      @default(0)
+  accountStatus  AccountStatus @default(NORMAL)
+
+  listings       Listing[]        @relation("UserListings")
+  offersSent     ExchangeOffer[]  @relation("OffersSent")
+  offersReceived ExchangeOffer[]  @relation("OffersReceived")
+  ratingsGiven   Rating[]         @relation("RatingsGiven")
+  ratingsReceived Rating[]        @relation("RatingsReceived")
+  chatMessages   ChatMessage[]
+  reportsMade    Report[]         @relation("ReportsMade")
+  reportsOnMe    Report[]         @relation("ReportsOnUser")
+}
+
+model Listing {
+  id            String         @id @default(uuid())
+  ownerId       String
+  owner         User           @relation("UserListings", fields: [ownerId], references: [id])
+  title         String
+  description   String
+  category      String
+  city          String
+  zipCode       String
+  latitude      Float?
+  longitude     Float?
+  openToAnyOffer Boolean       @default(false)
+  offersWhat    String[]
+  wantsWhat     String[]
+  status        ListingStatus  @default(ACTIVE)
+  createdAt     DateTime       @default(now())
+  viewsCount    Int            @default(0)
+  exchangesCount Int           @default(0)
+
+  images        ListingImage[]
+  exchangeOffers ExchangeOffer[]
+  reports       Report[]       @relation("ReportsOnListing")
+}
+
+model ListingImage {
+  id        String  @id @default(uuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+  url       String
+  position  Int     @default(0)
+}
+
+model ExchangeOffer {
+  id              String         @id @default(uuid())
+  listingId       String
+  listing         Listing        @relation(fields: [listingId], references: [id])
+  fromUserId      String
+  toUserId        String
+  fromUser        User           @relation("OffersSent", fields: [fromUserId], references: [id])
+  toUser          User           @relation("OffersReceived", fields: [toUserId], references: [id])
+  proposedListingIds String[]
+  message         String?
+  status          ExchangeStatus @default(PENDING)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  chatMessages    ChatMessage[]
+  ratings         Rating[]
+  reports         Report[]       @relation("ReportsOnExchange")
+}
+
+model ChatMessage {
+  id          String         @id @default(uuid())
+  exchangeId  String
+  exchange    ExchangeOffer  @relation(fields: [exchangeId], references: [id])
+  senderId    String
+  sender      User           @relation(fields: [senderId], references: [id])
+  text        String
+  createdAt   DateTime       @default(now())
+}
+
+model Rating {
+  id          String   @id @default(uuid())
+  fromUserId  String
+  toUserId    String
+  exchangeId  String
+  score       Int
+  comment     String
+  createdAt   DateTime @default(now())
+
+  fromUser    User     @relation("RatingsGiven", fields: [fromUserId], references: [id])
+  toUser      User     @relation("RatingsReceived", fields: [toUserId], references: [id])
+  exchange    ExchangeOffer @relation(fields: [exchangeId], references: [id])
+}
+
+model Report {
+  id             String          @id @default(uuid())
+  reporterId     String
+  reporter       User            @relation("ReportsMade", fields: [reporterId], references: [id])
+  targetType     ReportTargetType
+  targetUserId   String?
+  targetListingId String?
+  targetExchangeId String?
+  category       String
+  message        String
+  createdAt      DateTime        @default(now())
+  resolved       Boolean         @default(false)
+
+  targetUser     User?           @relation("ReportsOnUser", fields: [targetUserId], references: [id])
+  targetListing  Listing?        @relation("ReportsOnListing", fields: [targetListingId], references: [id])
+  targetExchange ExchangeOffer?  @relation("ReportsOnExchange", fields: [targetExchangeId], references: [id])
+}
