@@ -1,3 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-export const prisma = new PrismaClient();
+const prisma = new PrismaClient();
+
+// 👉 export default pour pouvoir faire "import prisma from '../db.js';"
+export default prisma;
