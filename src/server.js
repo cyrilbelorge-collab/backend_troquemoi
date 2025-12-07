@@ -11,6 +11,7 @@ import exchangeRoutes from './routes/exchangeRoutes.js';
 import ratingRoutes from './routes/ratingRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import authSocialRoutes from './routes/authSocialRoutes.js';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', authSocialRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/listings', listingRoutes);
 app.use('/api/exchanges', exchangeRoutes);
