@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "prestart": "npx prisma migrate deploy",
+    "prestart": "npx prisma migrate deploy || echo '⚠️ Prisma migrate failed — continuing...'",
     "start": "node src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
