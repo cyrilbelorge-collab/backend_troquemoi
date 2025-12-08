@@ -12,6 +12,7 @@ import ratingRoutes from './routes/ratingRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import authSocialRoutes from './routes/authSocialRoutes.js';
+import uploadRoutes from "./routes/uploadRoutes.js";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.get('/', (req, res) => {
   res.json({ status: 'ok', app: 'TroqueMoi API' });
 });
 
+app.use("/api/uploads", uploadRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', authSocialRoutes);
 app.use('/api/users', userRoutes);
