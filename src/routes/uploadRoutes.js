@@ -16,9 +16,16 @@ cloudinary.v2.config({
 router.get("/sign", async (req, res) => {
   try {
     const timestamp = Math.floor(Date.now() / 1000);
+    const folder = "troquemoi";
+
+    // 👇 IMPORTANT : on signe TOUS les paramètres qu'on va envoyer à Cloudinary
+    const paramsToSign = {
+      timestamp,
+      folder,
+    };
 
     const signature = cloudinary.v2.utils.api_sign_request(
-      { timestamp },
+      paramsToSign,
       process.env.CLOUDINARY_API_SECRET
     );
 
@@ -27,7 +34,7 @@ router.get("/sign", async (req, res) => {
       apiKey: process.env.CLOUDINARY_API_KEY,
       timestamp,
       signature,
-      folder: "troquemoi",
+      folder,
     });
   } catch (err) {
     console.error("Erreur signature Cloudinary :", err);
